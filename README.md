@@ -1,9 +1,12 @@
 # RM_4-points_yolov5
-# 基于yolov5-face修改的四点模型。修改主干网络为mobilenet
+# 基于yolov5-face修改的四点模型。
 ## 介绍
-数据集类别来源于上交数据标注软件，上交格式数据集参考：https://github.com/TAber-W/RobomasterDataset
+数据集类别来源于上交数据标注软件。<br>
+<br>
+上交格式数据集参考：https://github.com/TAber-W/RobomasterDataset<br>
 <br>
 数据集标签格式：类别序号+xywh+4点，长度13.<br>
+<br>
 运行transform_labels.py可将上交四点格式转为此模型适用的格式。<br>
 ## 识别效果：
 https://www.bilibili.com/video/BV1cG4y187UZ/
