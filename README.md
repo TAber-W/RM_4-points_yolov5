@@ -29,6 +29,9 @@ https://www.bilibili.com/video/BV1cG4y187UZ/
     python train.py --weights yolov5s.pt --cfg models/yolov5s.yaml --data data/widerface.yaml --batch-size 16 --epochs 500
 ## 验证
     python detect.py --weights best.pt --source test.jpg/.mp4--save-img(保存目录/runs/detect/下)
+## 导出onnx
+    python export.py --weghts best.py --img_size 640 --batch_size 1
+  
 ## 开源许可
 本开源项目请遵守GNU AGPL3.0 License许可认证。
 
