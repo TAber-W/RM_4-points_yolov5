@@ -8,6 +8,8 @@
 数据集标签格式：类别序号+xywh+4点，长度13.<br>
 <br>
 运行transform_labels.py可将上交四点格式转为此模型适用的格式。<br>
+<br>
+交流方式：qq 852707293
 ## 识别效果：
 https://www.bilibili.com/video/BV1cG4y187UZ/
 ## 训练
