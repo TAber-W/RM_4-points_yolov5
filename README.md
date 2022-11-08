@@ -30,7 +30,7 @@ https://www.bilibili.com/video/BV1cG4y187UZ/
 ## 验证
     python detect.py --weights best.pt --source test.jpg/.mp4--save-img(保存目录/runs/detect/下)
 ## 导出onnx
-    python export.py --weghts best.py --img_size 640 --batch_size 1
+    python export.py --weights best.py --img_size 640 --batch_size 1
   
 ## 开源许可
 本开源项目请遵守GNU AGPL3.0 License许可认证。
