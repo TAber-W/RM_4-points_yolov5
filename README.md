@@ -24,13 +24,13 @@
 https://www.bilibili.com/video/BV1cG4y187UZ/
 ## 训练
 ### mobilenet为主干网络：
-    python train.py --weights yolov5s.pt --cfg models/yolov5s.yaml --data data/mobilenet_small.yaml --batch-size 16 --epochs 500
+    python train.py --weights yolov5s.pt --cfg models/mobilenet_small.yaml --data data/widerface.yaml --batch-size 16 --epochs 500
 ### yolov5为主干网络：
     python train.py --weights yolov5s.pt --cfg models/yolov5s.yaml --data data/widerface.yaml --batch-size 16 --epochs 500
 ## 验证
     python detect.py --weights best.pt --source test.jpg/.mp4--save-img(保存目录/runs/detect/下)
 ## 导出onnx
-    python export.py --weights best.py --img_size 640 --batch_size 1
+    python export.py --weights best.pt --img_size 640 --batch_size 1
   
 ## 开源许可
 本开源项目请遵守GNU AGPL3.0 License许可认证。
