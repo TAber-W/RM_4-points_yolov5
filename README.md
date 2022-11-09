@@ -21,10 +21,10 @@
                       
     基于mobilevit主干替换 🚀
 ## 识别效果：
-![image](https://github.com/TAber-W/RM_4-points_yolov5/blob/main/test.jpg)
-https://www.bilibili.com/video/BV1cG4y187UZ/
+https://www.bilibili.com/video/BV1cG4y187UZ/ <br>
+![image](https://github.com/TAber-W/RM_4-points_yolov5/blob/master/test.jpg)
 ## 权重文件
-根目录下的RM-NET.pt是训练了101 epochs(忘了0开始的了😭)，Map0.5 为 0.63。<br>
+根目录下的RM-NET.pt是训练了101 epochs ,batch-size=16 (忘了0开始的了😭)，Map0.5 为 0.63。<br>
 <br>
 数据集采用的西南大学——GKD战队的四点数据集。
 ## 训练
