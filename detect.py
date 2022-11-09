@@ -154,7 +154,7 @@ def detect(
 
         # Inference
         pred = model(img)[0]
-        print(pred[0][0,13:])
+        
         
         # Apply NMS
         pred = non_max_suppression_face(pred, conf_thres, iou_thres)
