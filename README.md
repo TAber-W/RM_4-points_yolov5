@@ -39,9 +39,9 @@ https://www.bilibili.com/video/BV1cG4y187UZ/ <br>
 ## 导出onnx
     python export.py --weights best.pt --img_size 640 --batch_size 1
 ## TensorRT部署
-提供了python版本的推理文件（包含了预处理和后处理，直接输入图片即可）<br>
-<b>在测试平台下,完整推理速度达到平均40FPS，可以删除预处理，保证输入永远为640x640</b><br>
-
+<b>提供了python版本的推理文件（包含了预处理和后处理，直接输入图片即可）</b><br>
+<b>在测试平台下,完整推理速度达到平均40FPS，可以删除预处理，保证输入永远为640x640，</b><br>
+<b>或者部署C++，训练时减小输入大小等方式来提升速度！</b>
 ### 1、修改配置
     打开weights/trt_infer.py 修改img_path和trt_path
 ### 2、运行
