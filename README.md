@@ -46,6 +46,7 @@ https://www.bilibili.com/video/BV1cG4y187UZ/ <br>
     打开weights/trt_infer.py 修改img_path和trt_path
 ### 2、运行
     python trt_infer.py
+![image](https://github.com/TAber-W/RM_4-points_yolov5/blob/master/infer.jpg)
 ## Todo
     修改为纯四点 🚀
    
