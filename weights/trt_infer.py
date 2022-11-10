@@ -363,11 +363,15 @@ def non_max_suppression(
     return output
 i=0
 model = TrtModel(trt_path)
+##这里模拟十次输入来测试速度
 while(i<10):
     a=time.time()
     img,orgimg=img_process(img_path) 
     pred=model(img.numpy()).reshape(output_shape) # forward
     pred = non_max_suppression(torch.from_numpy(pred), conf_thres=0.5, iou_thres=0.5,img=img)
+    ## pred，就是最后的结果 len(pred[0]) == 装甲数
+    ## pred[0][i] = [x,y,w,h,四个坐标归一化的点,类别]
+    ## 具体后处理过程可以查看pt的推理也就是detect.py
     print(i,":",time.time()-a)
     i=i+1
 model.destroy()
