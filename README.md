@@ -55,8 +55,8 @@ https://www.bilibili.com/video/BV1cG4y187UZ/ <br>
     python train.py --weights yolov5s.pt --cfg models/mobilenet_small.yaml --data data/widerface.yaml --batch-size 16 --epochs 500
 ### yolov5为主干网络：
     python train.py --weights yolov5s.pt --cfg models/yolov5s.yaml --data data/widerface.yaml --batch-size 16 --epochs 500
-## 验证
-    python detect.py --weights best.pt --source test.jpg/.mp4 --save-img(保存目录/runs/detect/下)
+## 验证(视频暂时有BUG)
+    python detect.py --weights best.pt --source test.jpg/~~.mp4~~ --save-img(保存目录/runs/detect/下)
 ## 导出onnx
     python export.py --weights best.pt --img_size 640 --batch_size 1
 ## TensorRT部署
