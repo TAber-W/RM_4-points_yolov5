@@ -3,6 +3,8 @@
 ## 介绍
     平台环境
     
+    操作系统：Windows 10
+
     显卡：NVIDIA Tesla P100-16GB
     
     Pytorch：1.11
@@ -21,6 +23,17 @@
 由于上交格式是有超出边界的坐标，在此模型下会产生警告，将超出范围的点收回到最大值，不影响识别，可忽略。<br>
 <br>
 交流方式：qq 852707293
+
+## 环境配置（步骤）
+### 安装pytorch
+![image](https://github.com/TAber-W/RM_4-points_yolov5/blob/master/images/pytorch.png)
+### 安装CUDA，CUDNN
+下图为建议版本
+<br>
+![image](https://github.com/TAber-W/RM_4-points_yolov5/blob/master/images/cuda.png)
+### 安装工具包
+    pip istall -r requirements.txt
+
 ## 识别效果：
 https://www.bilibili.com/video/BV1cG4y187UZ/ <br>
 ![image](https://github.com/TAber-W/RM_4-points_yolov5/blob/master/test.jpg)
@@ -35,7 +48,7 @@ https://www.bilibili.com/video/BV1cG4y187UZ/ <br>
 ### yolov5为主干网络：
     python train.py --weights yolov5s.pt --cfg models/yolov5s.yaml --data data/widerface.yaml --batch-size 16 --epochs 500
 ## 验证
-    python detect.py --weights best.pt --source test.jpg/.mp4--save-img(保存目录/runs/detect/下)
+    python detect.py --weights best.pt --source test.jpg/.mp4 --save-img(保存目录/runs/detect/下)
 ## 导出onnx
     python export.py --weights best.pt --img_size 640 --batch_size 1
 ## TensorRT部署
