@@ -4,13 +4,17 @@
 
 ## 已知BUG
     detect.py 检测源为视频时会闪退。（正在修改）
+    
     detect.py 检测大小只能为640。（正在修改）
+    
     建议:采用trt推理后自己绘图
 
 ## 介绍
     平台环境
     
     操作系统：Windows 10
+    
+    CUDA：11.7
 
     显卡：NVIDIA Tesla P100-16GB
     
@@ -18,7 +22,7 @@
     
     ONNX、ONNXRuntime：1.12.0、1.13.1
     
-    TensorRT：8.5.1.7
+    TensorRT：8.5.1.7 GA
 数据集类别来源于上交数据标注软件。<br>
 <br>
 上交格式数据集参考：https://github.com/TAber-W/RobomasterDataset<br>
@@ -56,7 +60,7 @@ https://www.bilibili.com/video/BV1cG4y187UZ/ <br>
 ### yolov5为主干网络：
     python train.py --weights yolov5s.pt --cfg models/yolov5s.yaml --data data/widerface.yaml --batch-size 16 --epochs 500
 ## 验证(视频暂时有BUG)
-    python detect.py --weights best.pt --source test.jpg/~~.mp4~~ --save-img(保存目录/runs/detect/下)
+    python detect.py --weights best.pt --source test.jpg --save-img(保存目录/runs/detect/下)
 ## 导出onnx
     python export.py --weights best.pt --img_size 640 --batch_size 1
 ## TensorRT部署
