@@ -1,6 +1,5 @@
 # -*- coding: UTF-8 -*-
 import argparse
-import time
 from pathlib import Path
 import sys
 import os
@@ -8,8 +7,6 @@ import os
 import numpy as np
 import cv2
 import torch
-import torch.backends.cudnn as cudnn
-from numpy import random
 import copy
 
 FILE = Path(__file__).resolve()
@@ -20,14 +17,12 @@ ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
 
 from models.experimental import attempt_load
 from utils.datasets import letterbox, img_formats, vid_formats, LoadImages, LoadStreams
-from utils.general import check_img_size, non_max_suppression_face, apply_classifier, scale_coords, xyxy2xywh, \
-    strip_optimizer, set_logging, increment_path
-from utils.plots import plot_one_box
-from utils.torch_utils import select_device, load_classifier, time_synchronized
+from utils.general import check_img_size, non_max_suppression_face, scale_coords, increment_path
+from utils.torch_utils import time_synchronized
 
 
 def load_model(weights, device):
-    model = attempt_load(weights, map_location=device)  # load FP32 model
+    model = attempt_load(weights, map_location=device if device.type != 'mps' else 'cpu')  # load FP32 model
     return model
 
 
@@ -43,7 +38,7 @@ def scale_coords_landmarks(img1_shape, coords, img0_shape, ratio_pad=None):
     coords[:, [0, 2, 4, 6]] -= pad[0]  # x padding
     coords[:, [1, 3, 5, 7]] -= pad[1]  # y padding
     coords[:, :10] /= gain
-    #clip_coords(coords, img0_shape)
+    # clip_coords(coords, img0_shape)
     coords[:, 0].clamp_(0, img0_shape[1])  # x1
     coords[:, 1].clamp_(0, img0_shape[0])  # y1
     coords[:, 2].clamp_(0, img0_shape[1])  # x2
@@ -52,60 +47,63 @@ def scale_coords_landmarks(img1_shape, coords, img0_shape, ratio_pad=None):
     coords[:, 5].clamp_(0, img0_shape[0])  # y3
     coords[:, 6].clamp_(0, img0_shape[1])  # x4
     coords[:, 7].clamp_(0, img0_shape[0])  # y4
-    #coords[:, 8].clamp_(0, img0_shape[1])  # x5
-    #coords[:, 9].clamp_(0, img0_shape[0])  # y5
+    # coords[:, 8].clamp_(0, img0_shape[1])  # x5
+    # coords[:, 9].clamp_(0, img0_shape[0])  # y5
     return coords
 
+
 def show_results(img, xyxy, conf, landmarks, class_num):
-    h,w,c = img.shape
+    h, w, c = img.shape
     tl = 1 or round(0.002 * (h + w) / 2) + 1  # line/font thickness
     x1 = int(xyxy[0])
     y1 = int(xyxy[1])
     x2 = int(xyxy[2])
     y2 = int(xyxy[3])
     img = img.copy()
-    
-    #cv2.rectangle(img, (x1,y1), (x2, y2), (0,255,0), thickness=tl, lineType=cv2.LINE_AA)
 
-    clors = [(255,0,0),(0,255,0),(0,0,255),(255,255,0)]
+    # cv2.rectangle(img, (x1,y1), (x2, y2), (0,255,0), thickness=tl, lineType=cv2.LINE_AA)
+
+    clors = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0)]
 
     point = []
-    for i in range(4): 
+    for i in range(4):
         point.append(int(landmarks[2 * i]))
         point.append(int(landmarks[2 * i + 1]))
         point_x = int(landmarks[2 * i])
         point_y = int(landmarks[2 * i + 1])
-        cv2.circle(img, (point_x, point_y), tl+1, clors[i], -1)
-    cv2.line(img,(point[0],point[1]),(point[4],point[5]),(0,0,255),5)
-    cv2.line(img,(point[2],point[3]),(point[6],point[7]),(0,0,255),5)
-    cv2.line(img,(point[0],point[1]),(point[2],point[3]),(0,0,255),5)
-    cv2.line(img,(point[4],point[5]),(point[6],point[7]),(0,0,255),5)
-    #print(point)
-    
+        cv2.circle(img, (point_x, point_y), tl + 1, clors[i], -1)
+    cv2.line(img, (point[0], point[1]), (point[4], point[5]), (0, 0, 255), 5)
+    cv2.line(img, (point[2], point[3]), (point[6], point[7]), (0, 0, 255), 5)
+    cv2.line(img, (point[0], point[1]), (point[2], point[3]), (0, 0, 255), 5)
+    cv2.line(img, (point[4], point[5]), (point[6], point[7]), (0, 0, 255), 5)
+    # print(point)
 
     tf = max(tl - 1, 1)  # font thickness
     label = str(conf)[:5]
-    cv2.putText(img, "class:"+str(class_num), (x1+50, y1 - 2), 0, tl / 3, [225, 255, 255], thickness=tf, lineType=cv2.LINE_AA)
+    cv2.putText(img, "class:" + str(class_num), (x1 + 50, y1 - 2), 0, tl / 3, [225, 255, 255], thickness=tf,
+                lineType=cv2.LINE_AA)
     cv2.putText(img, label, (x1, y1 - 2), 0, tl / 3, [225, 255, 255], thickness=tf, lineType=cv2.LINE_AA)
     return img
 
 
 def detect(
-    model,
-    source,
-    device,
-    project,
-    name,
-    exist_ok,
-    save_img,
-    view_img
+        model,
+        source,
+        device,
+        project,
+        name,
+        exist_ok,
+        save_img,
+        view_img
 ):
     # Load model
     img_size = 640
     conf_thres = 0.6
     iou_thres = 0.5
-    imgsz=(640, 640)
-    
+    imgsz = (640, 640)
+
+    model.to(device).eval()
+
     # Directories
     save_dir = increment_path(Path(project) / name, exist_ok=exist_ok)  # increment run
     Path(save_dir).mkdir(parents=True, exist_ok=True)  # make dir
@@ -113,7 +111,7 @@ def detect(
     is_file = Path(source).suffix[1:] in (img_formats + vid_formats)
     is_url = source.lower().startswith(('rtsp://', 'rtmp://', 'http://', 'https://'))
     webcam = source.isnumeric() or source.endswith('.txt') or (is_url and not is_file)
-    
+
     # Dataloader
     if webcam:
         print('loading streams:', source)
@@ -124,20 +122,20 @@ def detect(
         dataset = LoadImages(source, img_size=imgsz)
         bs = 1  # batch_size
     vid_path, vid_writer = [None] * bs, [None] * bs
-    
+
     for path, im, im0s, vid_cap in dataset:
-        
+
         if len(im.shape) == 4:
-            orgimg = np.squeeze(im.transpose(0, 2, 3, 1), axis= 0)
+            orgimg = np.squeeze(im.transpose(0, 2, 3, 1), axis=0)
         else:
             orgimg = im.transpose(1, 2, 0)
-        
+
         orgimg = cv2.cvtColor(orgimg, cv2.COLOR_BGR2RGB)
         img0 = copy.deepcopy(orgimg)
         h0, w0 = orgimg.shape[:2]  # orig hw
         r = img_size / max(h0, w0)  # resize image to img_size
         if r != 1:  # always resize down, only resize up if training with augmentation
-            interp = cv2.INTER_AREA if r < 1  else cv2.INTER_LINEAR
+            interp = cv2.INTER_AREA if r < 1 else cv2.INTER_LINEAR
             img0 = cv2.resize(img0, (int(w0 * r), int(h0 * r)), interpolation=interp)
 
         imgsz = check_img_size(img_size, s=model.stride.max())  # check img_size
@@ -152,22 +150,25 @@ def detect(
         if img.ndimension() == 3:
             img = img.unsqueeze(0)
 
+        t1 = time_synchronized()
         # Inference
         pred = model(img)[0]
-        
-        
+        t2 = time_synchronized()
+
         # Apply NMS
         pred = non_max_suppression_face(pred, conf_thres, iou_thres)
-        print(len(pred[0]), 'face' if len(pred[0]) == 1 else 'faces')
+        t3 = time_synchronized()
+        print(len(pred[0]), 'face' if len(pred[0]) == 1 else 'faces', end=" ")
+        print(f'Done. ({(1E3 * (t2 - t1)):.1f}ms) Inference, ({(1E3 * (t3 - t2)):.1f}ms) NMS')
 
         # Process detections
         for i, det in enumerate(pred):  # detections per image
-            
+
             if webcam:  # batch_size >= 1
                 p, im0, frame = path[i], im0s[i].copy(), dataset.count
             else:
                 p, im0, frame = path, im0s.copy(), getattr(dataset, 'frame', 0)
-            
+
             p = Path(p)  # to Path
             save_path = str(Path(save_dir) / p.name)  # im.jpg
 
@@ -178,22 +179,21 @@ def detect(
                 # Print results
                 for c in det[:, -1].unique():
                     n = (det[:, -1] == c).sum()  # detections per class
-                
-                
+
                 det[:, 5:13] = scale_coords_landmarks(img.shape[2:], det[:, 5:13], im0.shape).round()
-                
+
                 for j in range(det.size()[0]):
                     xyxy = det[j, :4].view(-1).tolist()
                     conf = det[j, 4].cpu().numpy()
                     landmarks = det[j, 5:13].view(-1).tolist()
                     class_num = det[j, 13].cpu().numpy()
-                    
+
                     im0 = show_results(im0, xyxy, conf, landmarks, class_num)
-            
+
             if view_img:
                 cv2.imshow('result', im0)
                 k = cv2.waitKey(1)
-                    
+
             # Save results (image with detections)
             if save_img:
                 if dataset.mode == 'image':
@@ -216,13 +216,11 @@ def detect(
                     except Exception as e:
                         print(e)
 
-                    
-            
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--weights', nargs='+', type=str, default='runs/train/exp5/weights/last.pt', help='model.pt path(s)')
+    parser.add_argument('--weights', nargs='+', type=str, default='runs/train/exp5/weights/last.pt',
+                        help='model.pt path(s)')
     parser.add_argument('--source', type=str, default='0', help='source')  # file/folder, 0 for webcam
     parser.add_argument('--img-size', type=int, default=640, help='inference size (pixels)')
     parser.add_argument('--project', default=ROOT / 'runs/detect', help='save results to project/name')
@@ -231,7 +229,7 @@ if __name__ == '__main__':
     parser.add_argument('--save-img', action='store_true', help='save results')
     parser.add_argument('--view-img', action='store_true', help='show results')
     opt = parser.parse_args()
-    
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    device = torch.device("cuda" if torch.cuda.is_available() else 'mps' if 'mps' in dir(torch.backends) and torch.backends.mps.is_available() and torch.backends.mps.is_built() else 'cpu')
     model = load_model(opt.weights, device)
     detect(model, opt.source, device, opt.project, opt.name, opt.exist_ok, opt.save_img, opt.view_img)
